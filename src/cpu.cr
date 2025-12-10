@@ -21,10 +21,14 @@ class CPU
   getter x = 0u8
   getter y = 0u8
   getter pc = 0u16
-  getter sp = 0xffu8
   getter p = 0x20u8 # bit 5 is always set
   getter memory = MemoryBus.new
+  getter stack = Stack.new MemoryBus.new
   getter cycles = 0u8;
+
+  def initialize
+    @stack = Stack.new @memory
+  end
 
   def start : Nil
     until is_halted
@@ -34,11 +38,11 @@ class CPU
 
   def dump_info : Nil
     puts "\nRegisters:"
-    puts "A: 0x#{@a.to_s(16)}"
-    puts "X: 0x#{@x.to_s(16)}"
-    puts "Y: 0x#{@y.to_s(16)}"
-    puts "PC: 0x#{@pc.to_s(16)}"
-    puts "SP: 0x#{@sp.to_s(16)}"
+    puts "A: 0x#{@a.to_s(16)} (#{@a})"
+    puts "X: 0x#{@x.to_s(16)} (#{@x})"
+    puts "Y: 0x#{@y.to_s(16)} (#{@y})"
+    puts "PC: 0x#{@pc.to_s(16)} (#{@pc})"
+    puts "SP: 0x#{@stack.sp.to_s(16)} (#{@stack.sp})"
 
     puts "\nFlags:"
     puts "N (negative): #{get_flag(Flag::N).to_s}"
@@ -57,7 +61,7 @@ class CPU
 
   def brk : Nil
     advance_pc
-    push_word @pc
+    @stack.push_word @pc
     php
     set_flag Flag::I, true
 
@@ -101,11 +105,20 @@ class CPU
   end
 
   def pha : Nil
-    push_byte @a
+    @stack.push_byte @a
   end
 
   def php : Nil
-    push_byte status_with_break
+    @stack.push_byte status_with_break
+  end
+
+  def pla : Nil
+    @a = @stack.pop_byte
+    set_zn @a
+  end
+
+  def plp : Nil
+    @p = @stack.pop_byte
   end
 
   private def is_halted : Bool
@@ -138,18 +151,6 @@ class CPU
     value = @memory.read(@pc)
     advance_pc
     value
-  end
-
-  private def push_byte(value : UInt8) : Nil
-    addr = 0x0100u16 | @sp
-    @memory.write(addr, value)
-    @sp &-= 1
-  end
-
-  private def push_word(value : UInt16) : Nil
-    high, low = high_low(value)
-    push_byte(high)  # high byte first
-    push_byte(low)
   end
 
   private def set_zn(n : UInt8) : Nil

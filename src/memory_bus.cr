@@ -1,10 +1,11 @@
 require "./instruction"
+require "./stack"
 
 class MemoryBus
   getter ram = Bytes.new 2 ** 16
 
   def read(address : UInt16) : UInt8
-    return @ram[address]
+    @ram[address]
   end
 
   def write(address : UInt16, value : UInt8) : Nil
@@ -22,6 +23,6 @@ class MemoryBus
   end
 
   def size : Int32
-    return @ram.size
+    @ram.size
   end
 end
