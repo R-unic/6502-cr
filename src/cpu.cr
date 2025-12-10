@@ -57,10 +57,9 @@ class CPU
 
   def brk : Nil
     advance_pc
-    push_word(@pc)
-    status = @p | Flag::B.value | Flag::U.value
-    push_byte(status)
-    set_flag(Flag::I, true)
+    push_word @pc
+    php
+    set_flag Flag::I, true
 
     low = @memory.read(0xFFFE).to_u16
     high = @memory.read(0xFFFF).to_u16
@@ -101,6 +100,14 @@ class CPU
   def nop : Nil
   end
 
+  def pha : Nil
+    push_byte @a
+  end
+
+  def php : Nil
+    push_byte status_with_break
+  end
+
   private def is_halted : Bool
     @memory.read(HALT_ADDRESS) == HALT_FLAG
   end
@@ -121,6 +128,10 @@ class CPU
     puts "Executing opcode: #{op_name}"
     @cycles = CYCLES[opcode]
     execute.call(self)
+  end
+
+  private def status_with_break : UInt8
+    @p | Flag::B.value | Flag::U.value
   end
 
   private def fetch_immediate : UInt8
