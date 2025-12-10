@@ -17,21 +17,21 @@ enum Flag : UInt8
 end
 
 class CPU
-  getter a = 0u8
-  getter x = 0u8
-  getter y = 0u8
-  getter pc = 0u16
-  getter p = 0x20u8 # bit 5 is always set
+  getter a : UInt8 = 0u8
+  getter x : UInt8 = 0u8
+  getter y : UInt8 = 0u8
+  getter pc : UInt16 = 0u16
+  getter p : UInt8 = 0x20u8 # bit 5 is always set
+  getter cycles : UInt8 = 0u8;
   getter memory = MemoryBus.new
   getter stack = Stack.new MemoryBus.new
-  getter cycles = 0u8;
 
   def initialize
     @stack = Stack.new @memory
   end
 
   def start : Nil
-    until is_halted
+    until is_halted?
       step
     end
   end
@@ -130,7 +130,7 @@ class CPU
     @pc = @stack.pop_word + 1
   end
 
-  private def is_halted : Bool
+  def is_halted? : Bool
     @memory.read(HALT_ADDRESS) == HALT_FLAG
   end
 
@@ -147,7 +147,6 @@ class CPU
 
     return raise "Unknown opcode: #{op_name}" if execute.nil?
 
-    puts "Executing opcode: #{op_name}"
     @cycles = CYCLES[opcode]
     execute.call(self)
   end
@@ -157,7 +156,7 @@ class CPU
   end
 
   private def fetch_immediate : UInt8
-    value = @memory.read(@pc)
+    value = @memory.read @pc
     advance_pc
     value
   end
