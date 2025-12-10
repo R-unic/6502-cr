@@ -43,6 +43,7 @@ class CPU
     puts "Y: 0x#{@y.to_s(16)} (#{@y})"
     puts "PC: 0x#{@pc.to_s(16)} (#{@pc})"
     puts "SP: 0x#{@stack.sp.to_s(16)} (#{@stack.sp})"
+    puts "Memory used: #{@memory.used} bytes"
 
     puts "\nFlags:"
     puts "N (negative): #{get_flag(Flag::N).to_s}"
@@ -65,8 +66,8 @@ class CPU
     php
     set_flag Flag::I, true
 
-    low = @memory.read(0xFFFE).to_u16
-    high = @memory.read(0xFFFF).to_u16
+    low = @memory.read_byte(0xFFFE).to_u16
+    high = @memory.read_byte(0xFFFF).to_u16
     @pc = (high << 8) | low
     halt
   end
@@ -97,7 +98,7 @@ class CPU
   end
 
   def jmp_absolute : Nil
-    address = @memory.read(@pc + 1)
+    address = @memory.read_byte(@pc + 1)
     @pc = address.to_u16
   end
 
@@ -131,11 +132,11 @@ class CPU
   end
 
   def is_halted? : Bool
-    @memory.read(HALT_ADDRESS) == HALT_FLAG
+    @memory.read_byte(HALT_ADDRESS) == HALT_FLAG
   end
 
   private def halt : Nil
-    @memory.write HALT_ADDRESS, HALT_FLAG
+    @memory.write_byte HALT_ADDRESS, HALT_FLAG
   end
 
   private def step : Nil
@@ -156,7 +157,7 @@ class CPU
   end
 
   private def fetch_immediate : UInt8
-    value = @memory.read @pc
+    value = @memory.read_byte @pc
     advance_pc
     value
   end

@@ -17,12 +17,12 @@ class Stack
   end
 
   def top_byte : UInt8
-    @memory.read top_address
+    @memory.read_byte top_address
   end
 
   def top_word : UInt16
     low = top_byte
-    high = @memory.read top_address - 1
+    high = @memory.read_byte top_address - 1
     (high.to_u16 << 8) || low.to_u16
   end
 
@@ -32,7 +32,7 @@ class Stack
 
   def push_byte(value : UInt8) : Nil
     address = top_address
-    @memory.write address, value
+    @memory.write_byte address, value
     @sp &-= 1
   end
 
