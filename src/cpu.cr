@@ -89,9 +89,9 @@ class CPU
     @pc &+= 1
     execute = OPCODES[opcode]?
 
-    return raise "Unknown opcode: #{opcode.to_s(16)}" if execute.nil?
+    return raise "Unknown opcode: #{OpCode[opcode]}" if execute.nil?
 
-    puts "Executing opcode: #{opcode.to_s(16)}"
+    puts "Executing opcode: #{OpCode[opcode]}"
     @cycles = CYCLES[opcode]
     execute.call(self)
   end
