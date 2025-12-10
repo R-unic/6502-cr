@@ -58,7 +58,7 @@ class CPU
   def lda_immediate : Nil
     @a = fetch_immediate
     set_flag(Flag::Z, @a.zero?)
-    set_flag(Flag::Z, (@a & 0x80) != 0)
+    set_flag(Flag::N, (@a & 0x80) != 0)
   end
 
   def brk : Nil
