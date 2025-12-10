@@ -1,6 +1,4 @@
-private def to_slice(arr : Array(U)) : Slice(U) forall U
-  Slice.new(arr.size) {|i| arr[i]}
-end
+require "./utility"
 
 class Instruction
   getter opcode : UInt8
@@ -21,7 +19,7 @@ class SmallOpInstruction < Instruction
   end
 
   def as_memory : Bytes
-    return to_slice [@opcode, @operand]
+    return to_slice [@opcode.as UInt8, @operand.as UInt8]
   end
 end
 
@@ -33,6 +31,6 @@ class BigOpInstruction < Instruction
   end
 
   def as_memory : Bytes
-    return to_slice [@opcode, @operand]
+    return to_slice [@opcode.as UInt8, @operand.as UInt8]
   end
 end

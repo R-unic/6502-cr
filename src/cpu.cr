@@ -55,6 +55,12 @@ class CPU
     halt
   end
 
+  def lda_immediate : Nil
+    @a = fetch_immediate
+    set_flag(Flag::Z, @a.zero?)
+    set_flag(Flag::Z, (@a & 0x80) != 0)
+  end
+
   def brk : Nil
     @pc &+= 1
     push_word(@pc)
@@ -90,8 +96,8 @@ class CPU
     execute.call(self)
   end
 
-  private def fetch_imm : UInt8
-    value = read(@pc)
+  private def fetch_immediate : UInt8
+    value = @memory.read(@pc)
     @pc &+= 1
     value
   end
