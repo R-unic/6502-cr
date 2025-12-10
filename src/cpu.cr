@@ -34,11 +34,11 @@ class CPU
 
   def dump_info : Nil
     puts "\nRegisters:"
-    puts "A: #{@a.to_s(16)}"
-    puts "X: #{@x.to_s(16)}"
-    puts "Y: #{@y.to_s(16)}"
-    puts "PC: #{@pc.to_s(16)}"
-    puts "SP: #{@sp.to_s(16)}"
+    puts "A: 0x#{@a.to_s(16)}"
+    puts "X: 0x#{@x.to_s(16)}"
+    puts "Y: 0x#{@y.to_s(16)}"
+    puts "PC: 0x#{@pc.to_s(16)}"
+    puts "SP: 0x#{@sp.to_s(16)}"
 
     puts "\nFlags:"
     puts "N (negative): #{get_flag(Flag::N).to_s}"
@@ -55,14 +55,8 @@ class CPU
     halt
   end
 
-  def lda_immediate : Nil
-    @a = fetch_immediate
-    set_flag(Flag::Z, @a.zero?)
-    set_flag(Flag::N, (@a & 0x80) != 0)
-  end
-
   def brk : Nil
-    @pc &+= 1
+    advance_pc
     push_word(@pc)
     status = @p | Flag::B.value | Flag::U.value
     push_byte(status)
@@ -74,8 +68,41 @@ class CPU
     halt
   end
 
+  def lda_immediate : Nil
+    @a = fetch_immediate
+    set_zn @a
+  end
+
+  def ldx_immediate : Nil
+    @x = fetch_immediate
+    set_zn @x
+  end
+
+  def ldy_immediate : Nil
+    @y = fetch_immediate
+    set_zn @y
+  end
+
+  def inx : Nil
+    @x += 1
+    set_zn @x
+  end
+
+  def iny : Nil
+    @y += 1
+    set_zn @y
+  end
+
+  def jmp_absolute : Nil
+    address = @memory.read(@pc + 1)
+    @pc = address.to_u16
+  end
+
+  def nop : Nil
+  end
+
   private def is_halted : Bool
-    return @memory.read(HALT_ADDRESS) == HALT_FLAG
+    @memory.read(HALT_ADDRESS) == HALT_FLAG
   end
 
   private def halt : Nil
@@ -85,20 +112,20 @@ class CPU
   private def step : Nil
     return deduct_cycles 1 unless @cycles.zero?
 
-    opcode = @memory.read(@pc)
-    @pc &+= 1
+    opcode = fetch_immediate
     execute = OPCODES[opcode]?
+    op_name = OpCode[opcode]
 
-    return raise "Unknown opcode: #{OpCode[opcode]}" if execute.nil?
+    return raise "Unknown opcode: #{op_name}" if execute.nil?
 
-    puts "Executing opcode: #{OpCode[opcode]}"
+    puts "Executing opcode: #{op_name}"
     @cycles = CYCLES[opcode]
     execute.call(self)
   end
 
   private def fetch_immediate : UInt8
     value = @memory.read(@pc)
-    @pc &+= 1
+    advance_pc
     value
   end
 
@@ -109,8 +136,22 @@ class CPU
   end
 
   private def push_word(value : UInt16) : Nil
-    push_byte((value >> 8).to_u8)  # high byte first
-    push_byte((value & 0xFF).to_u8)
+    high, low = high_low(value)
+    push_byte(high)  # high byte first
+    push_byte(low)
+  end
+
+  private def set_zn(n : UInt8) : Nil
+    set_zero n
+    set_negative n
+  end
+
+  private def set_zero(n : UInt8) : Nil
+    set_flag(Flag::Z, n.zero?)
+  end
+
+  private def set_negative(n : UInt8) : Nil
+    set_flag(Flag::N, (n & 0x80) != 0)
   end
 
   private def set_flag(mask : Flag, state : Bool) : Nil
@@ -127,5 +168,9 @@ class CPU
 
   private def deduct_cycles(count : Int32) : Nil
     @cycles &-= count
+  end
+
+  private def advance_pc(count = 1) : Nil
+    @pc &+= count
   end
 end
