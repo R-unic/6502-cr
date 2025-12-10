@@ -1,0 +1,13 @@
+name: mos6502
+version: 0.1.0
+
+authors:
+  - R-unic <roleyspersonal@gmail.com>
+
+targets:
+  mos6502:
+    main: src/mos6502.cr
+
+crystal: '>= 1.11.2'
+
+license: MIT
