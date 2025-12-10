@@ -121,6 +121,15 @@ class CPU
     @p = @stack.pop_byte
   end
 
+  def rti : Nil
+    plp
+    @pc = @stack.pop_word
+  end
+
+  def rti : Nil
+    @pc = @stack.pop_word + 1
+  end
+
   private def is_halted : Bool
     @memory.read(HALT_ADDRESS) == HALT_FLAG
   end

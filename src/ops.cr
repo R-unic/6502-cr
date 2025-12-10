@@ -9,8 +9,10 @@ end
 enum OpCode : UInt8
   BRK = 0x00
   PHP = 0x08
-  PHA = 0x48
   PLP = 0x28
+  RTI = 0x40
+  PHA = 0x48
+  RTS = 0x60
   PLA = 0x68
   JMP_ABSOLUTE = 0x4C
   LDY_IMMEDIATE = 0xA0

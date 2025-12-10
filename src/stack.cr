@@ -11,8 +11,19 @@ class Stack
     top_byte
   end
 
+  def pop_word : UInt8
+    @sp &+= 2
+    top_word
+  end
+
   def top_byte : UInt8
     @memory.read top_address
+  end
+
+  def top_word : UInt16
+    low = top_byte
+    high = @memory.read top_address - 1
+    (high.to_u16 << 8) || low.to_u16
   end
 
   def top_address
