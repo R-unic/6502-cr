@@ -1,29 +1,38 @@
 STACK_BOTTOM = 0x0100u16
 
 class Stack
-  getter sp = 0xFFu8
+  getter sp : UInt8 = 0xFF
 
   def initialize(@memory : MemoryBus)
   end
 
-  def pop_byte : UInt8
-    @sp &+= 1
-    top_byte
+  def size : UInt8
+    return 0xFFu8 - @sp
   end
 
-  def pop_word : UInt8
-    @sp &+= 2
-    top_word
+  def pop_byte : UInt8
+    byte = top_byte
+    @memory.free_byte top_address
+    @sp &+= 1
+    byte
   end
 
   def top_byte : UInt8
-    @memory.read_byte top_address
+    @memory.read_byte(top_address + 1)
+  end
+
+  def pop_word : UInt16
+    word = top_word
+    @memory.free_byte top_address + 2
+    @memory.free_byte top_address + 1
+    @sp &+= 2
+    word
   end
 
   def top_word : UInt16
+    high = @memory.read_byte(top_address + 2)
     low = top_byte
-    high = @memory.read_byte top_address - 1
-    (high.to_u16 << 8) || low.to_u16
+    (high.to_u16 << 8) | low.to_u16
   end
 
   def top_address
